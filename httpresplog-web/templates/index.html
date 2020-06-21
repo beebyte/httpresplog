@@ -1,0 +1,214 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+
+	<title>Response times</title>
+	<meta name="description" content="Response times">
+	<meta name="author" content="beebyte">
+
+	<style>
+		body {
+		  background-color: linen;
+		}
+
+		h1 {
+		  color: maroon;
+		  margin-left: 40px;
+		}
+		h2 {
+		  margin-left: 20px;
+		}
+		.graph-container {
+		}
+		.graph {
+			width: 900px;
+		}
+	</style>
+</head>
+
+<body>
+	<h1>HTTP response time measurements</h1>
+	<br>
+	{% for url in data_urls %}
+	<h2>Data source: {{ url }}</h2>
+	<div class="graph-container">
+		<div class="graph">
+			<canvas class="graph-canvas" data-source="{{ url }}"></canvas>
+		</div>
+	</div>
+	<br>
+	{% endfor %}
+	<br>
+	<h2>What is this?</h2>
+	This webpage displays results from HTTP response time measurements from identical WordPress websites deployed
+	to different providers. All test websites use Cloudflare to try to minimize the effects of network latency
+	on the measurements.<br>
+	<br>
+	<h3>The test webpage</h3>
+	The test website is a standard WordPress install with WooCommerce and a singel product. The website start page,
+	which is the URL being tested, includes WooCommerce products.<br>
+	<br>
+	<h3>How are the measurements performed</h3>
+	Each website is tested every 5 minutes. A HTTPS connection is established with the website using HTTP
+	keepalive. The monitored page is fetched five times using a standard HTTP GET request and the time from
+	when the request is sent until all data has been fetched is saved.
+	An average response time value of the five requests is stored in a database.<br>
+	Only the website index page is measured, no static data (images, css, js etc) are fetched for the page
+	as there generelly isn't much difference in serving up static data.<br>
+	<br>
+	<h3>So what is it you want to measure?</h3>
+	The goal is to measure how fast the tested webserver can return the HTML data for a WordPress (PHP) website.
+	This includes PHP processing (CPU/disk), and DB access.
+	No caching is used on the tested websites as that would basically make the test a network performance test when
+	the goal is to measure webserver performance.
+	<br>
+	Once per hour, the past 12 values (from the past hour) are once again averaged and stored, these are the values that
+	are displayed in the graphs.<br>
+	<br>
+	In effect, the graphs display highly averaged response time data to try to give a reasonable picture of what each
+	monitored URLs response times look like, without being to influenced by temporary highs or lows.
+	<br>
+	<br>
+	<h3>A note on reading the results</h3>
+	Differences in response time will be affected by network latency to some degree, and that will, in the real world,
+	vary based on the visitors location and ISP. A difference of 5ms or less in the graphs can probably be discounted
+	as network related.<br>
+	<br>
+	<h3>Why are there two graphs?</h3>
+	To help highlight the impact of network related delays, the same test is performed from multiple locations.
+	As the tested websites are all behind Cloudflare, this mostly displays the difference in network latency from
+	different locations.<br>
+	<br>
+	<h3>What webhosting packages have been used?</h3>
+	Standard webhosting packages from each provider have been used, trying to stay within the same price range as
+	far as possible.<br>
+	<br>
+	<h3>Why aren't you testing more providers?</h3>
+	Cost.<br>
+	<br>
+	<h3>Who is performing this test</h3>
+	This test is performed by <a href="https://www.beebyte.se/">beebyte</a>. As a hosting provider we are obviously
+	biased in a test like this, we have therefore tried to make the test as honest, transparent and reproducible
+	as possible.
+	As the tests are using publicy available resources, they can be reproduced by anyone that sets up accounts/websites
+	with the tested providers.<br>
+	<br>
+	<br>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.1"></script>
+	<script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+	<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@0.7.4"></script>
+	<script src="https://cdn.jsdelivr.net/npm/google-palette@1.1.0/palette.min.js"></script>
+	<script>
+		var line_colors = palette('tol', 10);
+		options = {
+			fill: false,
+			responsive: true,
+			scales: {
+			    xAxes: [{
+				type: 'time',
+				time: {
+				    unit: 'hour',
+				},
+				display: true,
+				scaleLabel: {
+				    display: true,
+				    labelString: "Measurement timestamp",
+				}
+			    }],
+			    yAxes: [{
+				type: 'linear',
+				display: true,
+				ticks: {min: 0},
+				scaleLabel: {
+					display: true,
+					labelString: 'Response time in seconds (lower is better)'
+				}
+			    }],
+			},
+			tooltips: {
+			    intersect: false,
+			    mode: 'index',
+			},
+			plugins: {
+				zoom: {
+					// Container for zoom options
+					zoom: {
+						// Boolean to enable zooming
+						enabled: true,
+						drag: true,
+						mode: 'xy',
+						rangeMin: {
+							x: null,
+							y: null
+						},
+						rangeMax: {
+							x: null,
+							y: null
+						},
+						speed: 0.1,
+						sensitivity: 3,
+						onZoom: function({chart}) { console.log(`I'm zooming!!!`); },
+						onZoomComplete: function({chart}) { console.log(`I was zoomed!!!`); }
+					}
+				}
+			}
+		}
+		var graph_elements = document.getElementsByClassName("graph-canvas");
+		for (var graph_element_pos=0, len=graph_elements.length; graph_element_pos<len; graph_element_pos++) {
+			var graph_element = graph_elements[graph_element_pos]
+			var ctx = graph_element.getContext('2d');
+			fetch_graph(ctx);
+		}
+		function fetch_graph(ctx) {
+			var chart_data = {
+			    labels: [],
+			    datasets: [],
+			}
+
+			fetch(graph_element.dataset.source, {
+			    method: 'GET',
+			    headers: { 'Content-Type': 'application/json',
+				       'X-Requested-With': 'XMLHttpRequest',
+			    }}).then(function(result) {
+				result.json().then(function(json) {
+				    var cnt = 0;
+				    for (var m in json.data.datasets) { 
+					dataset_data = json.data.datasets[m];
+					chart_dataset_data = [];
+					for (n = 0; n < dataset_data.data.length; n++) {
+						dp = dataset_data.data[n];
+						chart_dataset_data.push({x: new Date(dp[0][0], dp[0][1]-1, dp[0][2], dp[0][3], dp[0][4]), y: dp[1]})
+					};
+					var color = '#' + line_colors[cnt];
+					chart_data.datasets.push(
+					    {
+						fill: false,
+						label: dataset_data.label,
+						data: chart_dataset_data,
+						borderColor: color,
+						backgroundColor: color,
+						type: 'line',
+					    }
+					)
+					cnt += 1;
+				    }
+					var chart = new Chart(ctx, {
+					    // The type of chart we want to create
+					    type: 'line',
+
+					    // The data for our dataset
+					    data: chart_data,
+
+					    // Configuration options go here
+					    options: options,
+					});
+				})
+			    })
+
+		}
+	</script>
+</body>
+</html>
