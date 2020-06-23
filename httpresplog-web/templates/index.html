@@ -15,23 +15,28 @@
 
 		h1 {
 		  color: maroon;
-		  margin-left: 40px;
 		}
 		h2 {
-		  margin-left: 20px;
 		}
 		.graph-container {
 		}
 		.graph {
 			width: 900px;
 		}
+		.bold {
+			font-weight: bold;
+		}
 	</style>
 </head>
 
 <body>
 	<h1>HTTP response time measurements</h1>
+	<span class="bold">This data is provided by <a href="https://www.beebyte.se/">beebyte</a>, see below for more information.</span>
+	<br>
 	<br>
 	{% for url in data_urls %}
+	<hr>
+	<br>
 	<h2>Data source: {{ url }}</h2>
 	<div class="graph-container">
 		<div class="graph">
@@ -40,13 +45,14 @@
 	</div>
 	<br>
 	{% endfor %}
+	<hr>
 	<br>
 	<h2>What is this?</h2>
 	This webpage displays results from HTTP response time measurements from identical WordPress websites deployed
 	to different providers. All test websites use Cloudflare to try to minimize the effects of network latency
 	on the measurements.<br>
 	<br>
-	<h2>But why?</h2>
+	<h3>But why?</h3>
 	We wanted to get an idea of response times for different Swedish webhosting providers. As we were collecting
 	the data anyway, we might as well make it public.<br>
 	<br>
@@ -100,7 +106,7 @@
 	with the tested providers.<br>
 	<br>
 	<h3>What tools are used to perform the testing?</h3>
-	The used tools and the source for this website can be found <a href="https://github.com/beebyte/httpresplog">on github</a>.
+	The tools used and the source for this website can be found <a href="https://github.com/beebyte/httpresplog">on github</a>.
 	<br>
 	<br>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
@@ -117,7 +123,7 @@
 			    xAxes: [{
 				type: 'time',
 				time: {
-				    unit: 'hour',
+				    unit: 'day',
 				},
 				display: true,
 				scaleLabel: {
@@ -198,6 +204,7 @@
 						borderColor: color,
 						backgroundColor: color,
 						type: 'line',
+						pointRadius: 0,
 					    }
 					)
 					cnt += 1;
