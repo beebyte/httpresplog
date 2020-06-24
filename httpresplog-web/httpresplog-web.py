@@ -11,6 +11,7 @@ contained and easy to deploy.
 
 Running with gunicorn:
     DB_NAME="DB-NAME" DB_USER="DB-USER" DB_PASS="DB-PASSWORD" gunicorn -w 4 -b 127.0.0.1:5000 httpresplog-web:app
+Also optionally DATA_URLS="xxx" can be passed in, if it isn't, the local data source will be used.
 """
 
 from flask import Flask
@@ -65,11 +66,17 @@ def db_get_url_label(dbcon, url_id):
 
 
 def graph_data_set_labels(data, dbcon):
+    """Fetch labels for data sets.
+
+    Using one SQL query per set is not great, but there are so few
+    sets that it shouldn't really matter.
+    """
     for dataset in data['datasets'].values():
         dataset['label'] = db_get_url_label(dbcon, dataset['url_id'])
 
 
 def get_graph_data():
+    """Graph data for the /data/ endpoint."""
     dbcon = db_connect(DB_NAME, DB_USER, DB_PASS)
     rows = db_get_1h_rows(dbcon)
     data = {"ts": time.time(), "datasets": {}}
@@ -88,10 +95,15 @@ def get_graph_data():
 
 @app.route("/")
 def index():
+    """The index page, and only public page displayed."""
     return render_template("index.html", data_urls=DATA_URLS)
 
 
 @app.route("/data/")
 def data():
+    """Public URL to return graph data.
+
+    Used as a datasource for the chartjs charts on the index page.
+    """
     ret = {"data": get_graph_data()}
     return jsonify(ret)

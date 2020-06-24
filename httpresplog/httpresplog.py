@@ -64,6 +64,11 @@ CHROME_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, 
 
 
 class URL:
+    """Simple URL storage class.
+
+    Gets the redirected URL (if any redirects are done).
+    Matches against an URL id already stored in the DB.
+    """
     def __init__(self, url, dbcon):
         self.dbcon = dbcon
         if "://" not in url:
@@ -177,6 +182,12 @@ def db_log_5m_result(url, dbcon, result):
 
 
 def monitor_url(url, dbcon, num_requests, keepalive):
+    """Monitor an URL and store the results in the DB.
+
+    A HTTP keepalive connection is established with the web server
+    and five (by default) requests are sent for the given URL.
+    min max and average values are stored.
+    """
     print('Checking %s' % url)
     try:
         result = time_url(url.url, num_requests, keepalive)
@@ -197,6 +208,13 @@ def db_log_1h_result(url, dbcon, value, ts):
 
 
 def log_1h_results(urls, dbcon):
+    """Calculate stored averages for all urls and saving them to the DB.
+
+    This function should (and is) called once per hour (every 12 requests).
+    It calculates an average of the saved requests from the last hour
+    and stores the result in the 1h_avg_results table.
+    This is the data that is displayed by httpresplog-web.
+    """
     print('Saving 1h results')
     ts = datetime.datetime.now()
     for url in urls:
@@ -254,6 +272,9 @@ def main():
     for url in args.urls:
         urls.append(URL(url, dbcon))
 
+    # Main loop.
+    # Check all urls every 5 minutes, store average results once per hour
+    # (every 12 iterations).
     loop_count = 0
     while True:
         print('----------- Monitoring')
