@@ -49,16 +49,17 @@
 	<br>
 	<h2>What is this?</h2>
 	This webpage displays results from HTTP response time measurements from identical WordPress websites deployed
-	to different providers. All test websites use Cloudflare to try to minimize the effects of network latency
+	to different hosting providers. All test websites use Cloudflare to try to minimize the effects of network latency
 	on the measurements.<br>
 	<br>
 	<h3>But why?</h3>
-	We wanted to get an idea of response times for different Swedish webhosting providers. As we were collecting
+	We wanted to get an idea of response times for different Swedish webhosting providers. As we are collecting
 	the data anyway, we might as well make it public.<br>
 	<br>
 	<h3>The test webpage</h3>
 	The test website is a standard WordPress install with WooCommerce and a singel product. The website start page,
 	which is the URL being tested, includes WooCommerce products.<br>
+	For the tested websites we have used PHP 7.4 where available, or the nearest PHP version available if not.<br>
 	<br>
 	<h3>How are the measurements performed</h3>
 	Each website is tested every 5 minutes. A HTTPS connection is established with the website using HTTP
@@ -106,8 +107,12 @@
 	with the tested providers.<br>
 	<br>
 	<h3>What tools are used to perform the testing?</h3>
-	The tools used and the source for this website can be found <a href="https://github.com/beebyte/httpresplog">on github</a>.
+	The tools used and the source for this website can be found <a href="https://github.com/beebyte/httpresplog">on github</a>.<br>
 	<br>
+	<h3>Conclusion</h3>
+	Webpage response times are one important factor when selecting a hosting provider, but it is far from the only
+	factor. Tooling, support, easy of use, price etc. are all factors that should be taken into account when selecting
+	a hosting provider that fits your particular needs.
 	<br>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.1"></script>
